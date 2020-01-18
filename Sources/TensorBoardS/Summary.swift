@@ -1,6 +1,27 @@
 import Foundation
 
+private func cleanTag(_ name: String) -> String {
+    var newName = name
+    newName = newName.replacingOccurrences(of: "[^-/\\w.]", with: "_", options: .regularExpression)
+    while newName.first == "/" {
+        newName = String(newName.dropFirst())
+    }
+    return newName
+}
+
 enum Summaries {
+    static func scalar(name: String, scalar: Float) -> TensorBoardS_Summary {
+        let name = cleanTag(name)
+        
+        return TensorBoardS_Summary.with {
+            let value = TensorBoardS_Summary.Value.with {
+                $0.tag = name
+                $0.simpleValue = scalar
+            }
+            $0.value = [value]
+        }
+    }
+    
     static func text(tag: String, text: String) throws -> TensorBoardS_Summary {
         let content = try TensorBoardS_TextPluginData.with {
             $0.version = 0

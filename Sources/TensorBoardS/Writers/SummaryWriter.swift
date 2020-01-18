@@ -19,6 +19,11 @@ public class SummaryWriter {
                                 filenameSuffix: filenameSuffix)
     }
     
+    public func addScalar(tag: String, scalar: Float, step: Int = 0, date: Date = Date()) {
+        let summary = Summaries.scalar(name: tag, scalar: scalar)
+        writer.addSummary(summary, step: step, date: date)
+    }
+    
     public func addText(tag: String, text: String, step: Int = 0, date: Date = Date()) {
         do {
             let text = try Summaries.text(tag: tag, text: text)
