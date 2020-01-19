@@ -11,7 +11,10 @@ private func cleanTag(_ name: String) -> String {
 }
 
 enum Summaries {
-    static func scalar(name: String, scalar: Float) -> TensorBoardS_Summary {
+    static func scalar(
+        name: String,
+        scalar: Float
+    ) -> TensorBoardS_Summary {
         let name = cleanTag(name)
         
         return TensorBoardS_Summary.with {
@@ -23,7 +26,10 @@ enum Summaries {
         }
     }
     
-    static func image(tag: String, image: Tensor<UInt8>) throws -> TensorBoardS_Summary {
+    static func image(
+        tag: String,
+        image: Tensor<UInt8>
+    ) throws -> TensorBoardS_Summary {
         let image = try PNGData(from: image)
         
         return TensorBoardS_Summary.with {
@@ -35,7 +41,21 @@ enum Summaries {
         }
     }
     
-    static func text(tag: String, text: String) throws -> TensorBoardS_Summary {
+    static func histogram<Scalar: TensorFlowNumeric>(
+        tag: String,
+        values: Tensor<Scalar>
+    ) -> TensorBoardS_Summary {
+        let tag = StringTensor(tag)
+        let str = _Raw.histogramSummary(tag: tag, values)
+        
+        // TODO: str contains protobuf encoded `TensorBoardS_Summary`
+        fatalError("Not implemented yet")
+    }
+    
+    static func text(
+        tag: String,
+        text: String
+    ) throws -> TensorBoardS_Summary {
         let content = try TensorBoardS_TextPluginData.with {
             $0.version = 0
         }.serializedData()

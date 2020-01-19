@@ -53,9 +53,9 @@ public class SummaryWriter {
     ///
     /// - Parameters:
     ///   - image: Tensor which has shape [height, width, channels]. Gray/RGB/RGBA are supported. Asuumes pixel values are in [0, 1] range.
-    public func addImage<F: TensorFlowFloatingPoint>(
+    public func addImage<Scalar: TensorFlowFloatingPoint>(
         tag: String,
-        image: Tensor<F>,
+        image: Tensor<Scalar>,
         step: Int = 0,
         date: Date = Date()
     ) {
@@ -84,9 +84,9 @@ public class SummaryWriter {
     /// - Parameters:
     ///   - images: Tensor which has shape [N, height, width, channels]. Gray/RGB/RGBA are supported. Asuumes pixel values are in [0, 1] range.
     ///   - colSize: Number of grid columns.
-    public func addImages<F: TensorFlowFloatingPoint>(
+    public func addImages<Scalar: TensorFlowFloatingPoint>(
         tag: String,
-        images: Tensor<F>,
+        images: Tensor<Scalar>,
         colSize: Int,
         step: Int = 0,
         date: Date = Date()
@@ -94,6 +94,17 @@ public class SummaryWriter {
         let image = makeGridImage(images: images, colSize: colSize, paddingValue: 0)
         addImage(tag: tag, image: image, step: step, date: date)
     }
+    
+    /// Add histogram to summary.
+//    public func addHistogram<Scalar: TensorFlowNumeric>(
+//        tag: String,
+//        values: Tensor<Scalar>,
+//        step: Int = 0,
+//        date: Date = Date()
+//    ) {
+//        let summary = Summaries.histogram(tag: tag, values: values)
+//        writer.addSummary(summary)
+//    }
     
     /// Add text data to summary.
     public func addText(
@@ -103,8 +114,8 @@ public class SummaryWriter {
         date: Date = Date()
     ) {
         do {
-            let text = try Summaries.text(tag: tag, text: text)
-            writer.addSummary(text, step: step, date: date)
+            let summary = try Summaries.text(tag: tag, text: text)
+            writer.addSummary(summary, step: step, date: date)
         } catch {
             errorHandler(error)
         }

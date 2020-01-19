@@ -49,5 +49,11 @@ do {
     writer.addImages(tag: "gray_grid5", images: gray, colSize: 5)
 }
 
+// MARK: - Add histogram
+//do {
+//    let values = Tensor<Float>(randomNormal: [1000]) + 2
+//    writer.addHistogram(tag: "histo", values: values)
+//}
+
 writer.flush()
 writer.close()
