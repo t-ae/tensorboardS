@@ -1,4 +1,5 @@
 import Foundation
+import TensorFlow
 
 private func cleanTag(_ name: String) -> String {
     var newName = name
@@ -17,6 +18,18 @@ enum Summaries {
             let value = TensorBoardS_Summary.Value.with {
                 $0.tag = name
                 $0.simpleValue = scalar
+            }
+            $0.value = [value]
+        }
+    }
+    
+    static func image(tag: String, image: Tensor<UInt8>) throws -> TensorBoardS_Summary {
+        let image = try PNGData(from: image)
+        
+        return TensorBoardS_Summary.with {
+            let value = TensorBoardS_Summary.Value.with {
+                $0.tag = tag
+                $0.image = TensorBoardS_Summary.Image(png: image)
             }
             $0.value = [value]
         }
