@@ -1,12 +1,10 @@
 import Foundation
 
 class EventFileWriter {
-    let writer: EventsWriter
+    private let writer: EventsWriter
     
-    let writerQueue: DispatchQueue = DispatchQueue(label: "EventFileWriter")
-    
-    var eventQueue: [TensorBoardS_Event] = []
-    
+    private var eventQueue: [TensorBoardS_Event] = []
+    private var timer: Timer? = nil
     private var closed = false
     
     private let lock = NSLock()
@@ -20,18 +18,14 @@ class EventFileWriter {
                                   filenamePrefix: "events",
                                   filenameSuffix: filenameSuffix)
         
-        writerQueue.async {
-            while true {
-                self.lock.lock()
-                let closed = self.closed
-                if closed {
-                    self.lock.unlock()
-                    break
-                }
-                self.flush(withLock: false)
-                self.lock.unlock()
-                Thread.sleep(forTimeInterval: flushInterval)
+        DispatchQueue.global(qos: .background).async {
+            let timer = Timer.scheduledTimer(withTimeInterval: flushInterval, repeats: true) { _ in
+                self.flush()
             }
+            let runLoop = RunLoop.current
+            runLoop.add(timer, forMode: .default)
+            runLoop.run()
+            self.timer = timer
         }
     }
     
@@ -68,6 +62,7 @@ class EventFileWriter {
         }
         lock.lock()
         closed = true
+        timer?.invalidate()
         flush(withLock: false)
         writer.close()
         lock.unlock()
