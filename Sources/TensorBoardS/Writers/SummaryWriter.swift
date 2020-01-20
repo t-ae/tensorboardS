@@ -133,7 +133,9 @@ class ThrowingSummaryWriter {
 
 
 public class SummaryWriter {
-    public var errorHandler: (Error)->Void = { _ in }
+    public var errorHandler: (Error)->Void = { error in
+        print("[SummaryWriter] \(error)", stderr)
+    }
     
     private let writer: ThrowingSummaryWriter
     
