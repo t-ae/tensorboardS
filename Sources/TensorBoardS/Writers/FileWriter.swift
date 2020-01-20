@@ -3,7 +3,7 @@ import Foundation
 class FileWriter {
     let writer: EventFileWriter
     
-    public init(
+    init(
         logdir: URL,
         flushInterval: TimeInterval = 120,
         filenameSuffix: String = ""

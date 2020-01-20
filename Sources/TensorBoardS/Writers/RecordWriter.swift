@@ -3,7 +3,7 @@ import CryptoSwift
 
 class RecordWriter {
     let fileURL: URL
-    private let fileHandle: FileHandle
+    let fileHandle: FileHandle
     
     init(fileURL: URL) throws {
         self.fileURL = fileURL

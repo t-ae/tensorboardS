@@ -1,14 +1,12 @@
 import Foundation
 import TensorFlow
 
-public class SummaryWriter {
-    public let logdir: URL
+class ThrowingSummaryWriter {
+    let logdir: URL
     
-    public var errorHandler: (Error)->Void = { _ in }
+    let writer: FileWriter
     
-    private let writer: FileWriter
-    
-    public init(
+    init(
         logdir: URL,
         flushInterval: TimeInterval = 120,
         filenameSuffix: String = ""
@@ -18,6 +16,142 @@ public class SummaryWriter {
         writer = try FileWriter(logdir: logdir,
                                 flushInterval: flushInterval,
                                 filenameSuffix: filenameSuffix)
+    }
+    
+    func addScalar(
+        tag: String,
+        scalar: Float,
+        step: Int = 0,
+        date: Date = Date()
+    ) {
+        let summary = Summaries.scalar(name: tag, scalar: scalar)
+        writer.addSummary(summary, step: step, date: date)
+    }
+    
+    func addImage(
+        tag: String,
+        image: Tensor<UInt8>,
+        step: Int = 0,
+        date: Date = Date()
+    ) throws {
+        let summary = try Summaries.image(tag: tag, image: image)
+        writer.addSummary(summary)
+    }
+    
+    func addImage<Scalar: TensorFlowFloatingPoint>(
+        tag: String,
+        image: Tensor<Scalar>,
+        step: Int = 0,
+        date: Date = Date()
+    ) throws {
+        let uint8 = Tensor<UInt8>(image.clipped(min: 0, max: 1) * 255)
+        try addImage(tag: tag, image: uint8, step: step, date: date)
+    }
+    
+    func addImages(
+        tag: String,
+        images: Tensor<UInt8>,
+        colSize: Int,
+        step: Int = 0,
+        date: Date = Date()
+    ) throws {
+        let image = makeGridImage(images: images, colSize: colSize, paddingValue: 0)
+        try addImage(tag: tag, image: image, step: step, date: date)
+    }
+    
+    func addImages<Scalar: TensorFlowFloatingPoint>(
+        tag: String,
+        images: Tensor<Scalar>,
+        colSize: Int,
+        step: Int = 0,
+        date: Date = Date()
+    ) throws {
+        let image = makeGridImage(images: images, colSize: colSize, paddingValue: 0)
+        try addImage(tag: tag, image: image, step: step, date: date)
+    }
+    
+    /// Add histogram to summary.
+//    func addHistogram<Scalar: TensorFlowNumeric>(
+//        tag: String,
+//        values: Tensor<Scalar>,
+//        step: Int = 0,
+//        date: Date = Date()
+//    ) {
+//        let summary = Summaries.histogram(tag: tag, values: values)
+//        writer.addSummary(summary)
+//    }
+    
+    func addText(
+        tag: String,
+        text: String,
+        step: Int = 0,
+        date: Date = Date()
+    ) throws {
+        let summary = try Summaries.text(tag: tag, text: text)
+        writer.addSummary(summary, step: step, date: date)
+    }
+    
+    func addJSONText<T: Encodable>(
+        tag: String,
+        encodable: T,
+        encoder: JSONEncoder,
+        step: Int = 0,
+        date: Date = Date()
+    ) throws {
+        let jsonData = try encoder.encode(encodable)
+        guard let encoded = String(data: jsonData, encoding: .utf8) else {
+            throw GenericError("Failed to encode jsonData to String: jsonData=\(jsonData)")
+        }
+        let text = """
+        <pre>
+        \(encoded)
+        </pre>
+        """
+        try addText(tag: tag, text: text, step: step, date: date)
+    }
+    
+    func addJSONText<T: Encodable>(
+        tag: String,
+        encodable: T,
+        step: Int = 0,
+        date: Date = Date()
+    ) throws {
+        let encoder = JSONEncoder()
+        encoder.outputFormatting = .prettyPrinted
+        try addJSONText(tag: tag, encodable: encodable, encoder: encoder, step: step, date: date)
+    }
+    
+    func flush() {
+        writer.flush()
+    }
+    
+    func close() {
+        flush()
+        writer.close()
+    }
+}
+
+
+public class SummaryWriter {
+    public var errorHandler: (Error)->Void = { _ in }
+    
+    private let writer: ThrowingSummaryWriter
+    
+    public init(
+        logdir: URL,
+        flushInterval: TimeInterval = 120,
+        filenameSuffix: String = ""
+    ) throws {
+        writer = try ThrowingSummaryWriter(
+            logdir: logdir,
+            flushInterval: flushInterval,
+            filenameSuffix: filenameSuffix
+        )
+    }
+    
+    
+    public var logdir: URL {
+        writer.logdir
     }
     
     func wrap(_ function: () throws -> Void) {
@@ -35,8 +169,7 @@ public class SummaryWriter {
         step: Int = 0,
         date: Date = Date()
     ) {
-        let summary = Summaries.scalar(name: tag, scalar: scalar)
-        writer.addSummary(summary, step: step, date: date)
+        writer.addScalar(tag: tag, scalar: scalar, step: step, date: date)
     }
     
     /// Add image data to summary
@@ -50,8 +183,7 @@ public class SummaryWriter {
         date: Date = Date()
     ) {
         wrap {
-            let summary = try Summaries.image(tag: tag, image: image)
-            writer.addSummary(summary)
+            try writer.addImage(tag: tag, image: image, step: step, date: date)
         }
     }
     
@@ -65,8 +197,9 @@ public class SummaryWriter {
         step: Int = 0,
         date: Date = Date()
     ) {
-        let uint8 = Tensor<UInt8>(image.clipped(min: 0, max: 1) * 255)
-        addImage(tag: tag, image: uint8, step: step, date: date)
+        wrap {
+            try writer.addImage(tag: tag, image: image, step: step, date: date)
+        }
     }
     
     /// Add images as grid image to summary.
@@ -81,8 +214,9 @@ public class SummaryWriter {
         step: Int = 0,
         date: Date = Date()
     ) {
-        let image = makeGridImage(images: images, colSize: colSize, paddingValue: 0)
-        addImage(tag: tag, image: image, step: step, date: date)
+        wrap {
+            try writer.addImages(tag: tag, images: images,colSize: colSize,step: step, date: date)
+        }
     }
     
     /// Add images as grid image to summary.
@@ -97,20 +231,10 @@ public class SummaryWriter {
         step: Int = 0,
         date: Date = Date()
     ) {
-        let image = makeGridImage(images: images, colSize: colSize, paddingValue: 0)
-        addImage(tag: tag, image: image, step: step, date: date)
+        wrap {
+            try writer.addImages(tag: tag, images: images,colSize: colSize,step: step, date: date)
+        }
     }
-    
-    /// Add histogram to summary.
-//    public func addHistogram<Scalar: TensorFlowNumeric>(
-//        tag: String,
-//        values: Tensor<Scalar>,
-//        step: Int = 0,
-//        date: Date = Date()
-//    ) {
-//        let summary = Summaries.histogram(tag: tag, values: values)
-//        writer.addSummary(summary)
-//    }
     
     /// Add text data to summary.
     public func addText(
@@ -120,8 +244,7 @@ public class SummaryWriter {
         date: Date = Date()
     ) {
         wrap {
-            let summary = try Summaries.text(tag: tag, text: text)
-            writer.addSummary(summary, step: step, date: date)
+            try writer.addText(tag: tag, text: text, step: step, date: date)
         }
     }
     
@@ -137,16 +260,11 @@ public class SummaryWriter {
         date: Date = Date()
     ) {
         wrap {
-            let jsonData = try encoder.encode(encodable)
-            guard let encoded = String(data: jsonData, encoding: .utf8) else {
-                throw GenericError("Failed to encode jsonData to String: jsonData=\(jsonData)")
-            }
-            let text = """
-            <pre>
-            \(encoded)
-            </pre>
-            """
-            addText(tag: tag, text: text, step: step, date: date)
+            try writer.addJSONText(tag: tag,
+                                   encodable: encodable,
+                                   encoder: encoder,
+                                   step: step,
+                                   date: date)
         }
     }
     
@@ -159,9 +277,9 @@ public class SummaryWriter {
         step: Int = 0,
         date: Date = Date()
     ) {
-        let encoder = JSONEncoder()
-        encoder.outputFormatting = .prettyPrinted
-        addJSONText(tag: tag, encodable: encodable, encoder: encoder, step: step, date: date)
+        wrap {
+            try writer.addJSONText(tag: tag, encodable: encodable, step: step, date: date)
+        }
     }
     
     public func flush() {

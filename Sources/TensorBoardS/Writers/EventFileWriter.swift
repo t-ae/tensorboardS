@@ -1,7 +1,6 @@
 import Foundation
 
 class EventFileWriter {
-    let logdir: URL
     let writer: EventsWriter
     
     let writerQueue: DispatchQueue
@@ -16,8 +15,6 @@ class EventFileWriter {
         filenameSuffix: String,
         flushInterval: TimeInterval = 120
     ) throws {
-        self.logdir = logdir
-        
         writer = try EventsWriter(logdir: logdir,
                                   filenamePrefix: "events",
                                   filenameSuffix: filenameSuffix)
