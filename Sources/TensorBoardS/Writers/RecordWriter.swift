@@ -1,5 +1,4 @@
 import Foundation
-import CryptoSwift
 
 class RecordWriter {
     let fileURL: URL
@@ -45,7 +44,7 @@ class RecordWriter {
 }
 
 private func maskedCRC32C(_ data: Data) -> UInt32 {
-    let checksum = Checksum.crc32c([UInt8](data))
+    let checksum = crc32c(data: data)
     let x15 = checksum >> 15
     let x17 = UInt32(truncatingIfNeeded: UInt64(checksum) << 17)
     return UInt32(truncatingIfNeeded: UInt64(x15 | x17) + 0xa282ead8)
