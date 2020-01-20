@@ -20,6 +20,14 @@ public class SummaryWriter {
                                 filenameSuffix: filenameSuffix)
     }
     
+    func wrap(_ function: () throws -> Void) {
+        do {
+            try function()
+        } catch {
+            errorHandler(error)
+        }
+    }
+    
     /// Add scalar data to summary.
     public func addScalar(
         tag: String,
@@ -41,11 +49,9 @@ public class SummaryWriter {
         step: Int = 0,
         date: Date = Date()
     ) {
-        do {
+        wrap {
             let summary = try Summaries.image(tag: tag, image: image)
             writer.addSummary(summary)
-        } catch {
-            errorHandler(error)
         }
     }
     
@@ -113,11 +119,9 @@ public class SummaryWriter {
         step: Int = 0,
         date: Date = Date()
     ) {
-        do {
+        wrap {
             let summary = try Summaries.text(tag: tag, text: text)
             writer.addSummary(summary, step: step, date: date)
-        } catch {
-            errorHandler(error)
         }
     }
     
@@ -132,7 +136,7 @@ public class SummaryWriter {
         step: Int = 0,
         date: Date = Date()
     ) {
-        do {
+        wrap {
             let jsonData = try encoder.encode(encodable)
             guard let encoded = String(data: jsonData, encoding: .utf8) else {
                 throw GenericError("Failed to encode jsonData to String: jsonData=\(jsonData)")
@@ -143,8 +147,6 @@ public class SummaryWriter {
             </pre>
             """
             addText(tag: tag, text: text, step: step, date: date)
-        } catch {
-            errorHandler(error)
         }
     }
     
