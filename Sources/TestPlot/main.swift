@@ -12,6 +12,18 @@ writer.errorHandler = { error in
 do {
     writer.addText(tag: "test_tag", text: "hoge", date: Date(timeIntervalSince1970: 0))
 }
+do {
+    struct Child: Encodable {
+        let str: String
+    }
+    struct Obj: Encodable {
+        let int: Int
+        let children: [Child]
+    }
+    
+    let obj = Obj(int: 42, children: [Child(str: "child1"), Child(str: "child2")])
+    writer.addJSONText(tag: "json", encodable: obj)
+}
 
 // MARK: - Add scalars to draw graph
 do {

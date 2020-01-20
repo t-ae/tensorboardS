@@ -121,6 +121,47 @@ public class SummaryWriter {
         }
     }
     
+    /// Add JSON data of encodable as text.
+    ///
+    /// - Parameters:
+    ///   - encoder: JSONEncoder to be used in encoding.
+    public func addJSONText<T: Encodable>(
+        tag: String,
+        encodable: T,
+        encoder: JSONEncoder,
+        step: Int = 0,
+        date: Date = Date()
+    ) {
+        do {
+            let jsonData = try encoder.encode(encodable)
+            guard let encoded = String(data: jsonData, encoding: .utf8) else {
+                throw GenericError("Failed to encode jsonData to String: jsonData=\(jsonData)")
+            }
+            let text = """
+            <pre>
+            \(encoded)
+            </pre>
+            """
+            addText(tag: tag, text: text, step: step, date: date)
+        } catch {
+            errorHandler(error)
+        }
+    }
+    
+    /// Add JSON data of encodable as text.
+    ///
+    /// JSON data will be pretty-printed.
+    public func addJSONText<T: Encodable>(
+        tag: String,
+        encodable: T,
+        step: Int = 0,
+        date: Date = Date()
+    ) {
+        let encoder = JSONEncoder()
+        encoder.outputFormatting = .prettyPrinted
+        addJSONText(tag: tag, encodable: encodable, encoder: encoder, step: step, date: date)
+    }
+    
     public func flush() {
         writer.flush()
     }
