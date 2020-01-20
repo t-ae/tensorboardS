@@ -3,10 +3,9 @@ import Foundation
 class EventFileWriter {
     let writer: EventsWriter
     
-    let writerQueue: DispatchQueue
+    let writerQueue: DispatchQueue = DispatchQueue(label: "EventFileWriter")
     
     var eventQueue: [TensorBoardS_Event] = []
-    var timerQueue = DispatchQueue.global()
     
     private var closed = false
     
@@ -21,9 +20,7 @@ class EventFileWriter {
                                   filenamePrefix: "events",
                                   filenameSuffix: filenameSuffix)
         
-        writerQueue = DispatchQueue(label: "EventFileWriter")
-        
-        timerQueue.async {
+        writerQueue.async {
             while true {
                 self.lock.lock()
                 let closed = self.closed
