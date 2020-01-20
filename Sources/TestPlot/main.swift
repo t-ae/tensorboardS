@@ -69,7 +69,7 @@ do {
     for i in 0..<10 {
         sleep(1)
         print("realtime: \(i)")
-        writer.addScalar(tag: "realtime", scalar: i)
+        writer.addScalar(tag: "realtime", scalar: i, step: i)
     }
 }
 

@@ -6,7 +6,7 @@ class EventFileWriter {
     let writerQueue: DispatchQueue
     
     var eventQueue: [TensorBoardS_Event] = []
-    var flushTimer: Timer?
+    var timerQueue = DispatchQueue.global()
     
     private var closed = false
     
@@ -23,21 +23,35 @@ class EventFileWriter {
         
         writerQueue = DispatchQueue(label: "EventFileWriter")
         
-        flushTimer = Timer.scheduledTimer(withTimeInterval: flushInterval, repeats: true) { _ in
-            print("timer flush")
-            self.flush()
+        timerQueue.async {
+            while true {
+                self.lock.lock()
+                let closed = self.closed
+                if closed {
+                    self.lock.unlock()
+                    break
+                }
+                self.flush(withLock: false)
+                self.lock.unlock()
+                Thread.sleep(forTimeInterval: flushInterval)
+            }
         }
     }
     
     func addEvent(event: TensorBoardS_Event) {
         lock.lock()
         defer { lock.unlock() }
+        
+        if closed {
+            return
+        }
         eventQueue.append(event)
     }
     
-    func flush() {
-        lock.lock()
-        defer { lock.unlock() }
+    func flush(withLock: Bool = true) {
+        if withLock {
+            lock.lock()
+        }
         
         while !eventQueue.isEmpty {
             let event = eventQueue.remove(at: 0)
@@ -45,16 +59,21 @@ class EventFileWriter {
         }
         
         writer.flush()
+        
+        if withLock {
+            lock.unlock()
+        }
     }
     
     func close() {
         guard !closed else {
             return
         }
+        lock.lock()
         closed = true
-        flushTimer?.invalidate()
-        flush()
+        flush(withLock: false)
         writer.close()
+        lock.unlock()
     }
     
     deinit {
