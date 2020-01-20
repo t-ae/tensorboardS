@@ -18,13 +18,23 @@ class ThrowingSummaryWriter {
                                 filenameSuffix: filenameSuffix)
     }
     
-    func addScalar(
+    func addScalar<Scalar: BinaryInteger>(
         tag: String,
-        scalar: Float,
+        scalar: Scalar,
         step: Int = 0,
         date: Date = Date()
     ) {
-        let summary = Summaries.scalar(name: tag, scalar: scalar)
+        let summary = Summaries.scalar(name: tag, scalar: Float(scalar))
+        writer.addSummary(summary, step: step, date: date)
+    }
+    
+    func addScalar<Scalar: BinaryFloatingPoint>(
+        tag: String,
+        scalar: Scalar,
+        step: Int = 0,
+        date: Date = Date()
+    ) {
+        let summary = Summaries.scalar(name: tag, scalar: Float(scalar))
         writer.addSummary(summary, step: step, date: date)
     }
     
@@ -166,9 +176,19 @@ public class SummaryWriter {
     }
     
     /// Add scalar data to summary.
-    public func addScalar(
+    public func addScalar<Scalar: BinaryInteger>(
         tag: String,
-        scalar: Float,
+        scalar: Scalar,
+        step: Int = 0,
+        date: Date = Date()
+    ) {
+        writer.addScalar(tag: tag, scalar: scalar, step: step, date: date)
+    }
+    
+    /// Add scalar data to summary.
+    public func addScalar<Scalar: BinaryFloatingPoint>(
+        tag: String,
+        scalar: Scalar,
         step: Int = 0,
         date: Date = Date()
     ) {
