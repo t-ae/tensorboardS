@@ -4,9 +4,6 @@ import TensorBoardS
 
 let logdir = URL(fileURLWithPath: "./logdir")
 let writer = try SummaryWriter(logdir: logdir)
-writer.errorHandler = { error in
-    print(error)
-}
 
 // MARK: - Add text
 do {

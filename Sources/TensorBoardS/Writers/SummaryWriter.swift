@@ -131,9 +131,9 @@ class ThrowingSummaryWriter {
     }
 }
 
-
 public class SummaryWriter {
-    public var errorHandler: (Error)->Void = { error in
+    /// Takes 2 arguments, error and call stack symbols.
+    public var errorHandler: (Error, [String])->Void = { error, callStack in
         print("[SummaryWriter] \(error)", stderr)
     }
     
@@ -160,7 +160,8 @@ public class SummaryWriter {
         do {
             try function()
         } catch {
-            errorHandler(error)
+            let callStack = Thread.callStackSymbols
+            errorHandler(error, callStack)
         }
     }
     
