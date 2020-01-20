@@ -3,6 +3,8 @@ import Foundation
 class FileWriter {
     let writer: EventFileWriter
     
+    private var closed = false
+    
     init(
         logdir: URL,
         flushInterval: TimeInterval = 120,
@@ -35,6 +37,10 @@ class FileWriter {
     }
     
     func close() {
+        guard !closed else {
+            return
+        }
+        closed = true
         writer.close()
     }
 }

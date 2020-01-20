@@ -6,6 +6,8 @@ class ThrowingSummaryWriter {
     
     let writer: FileWriter
     
+    private var closed = false
+    
     init(
         logdir: URL,
         flushInterval: TimeInterval = 120,
@@ -136,8 +138,15 @@ class ThrowingSummaryWriter {
     }
     
     func close() {
-        flush()
+        guard !closed else {
+            return
+        }
+        closed = true
         writer.close()
+    }
+    
+    deinit {
+        close()
     }
 }
 
@@ -148,6 +157,9 @@ public class SummaryWriter {
     }
     
     private let writer: ThrowingSummaryWriter
+    
+    
+    private var closed = false
     
     public init(
         logdir: URL,
@@ -310,7 +322,14 @@ public class SummaryWriter {
     }
     
     public func close() {
-        flush()
+        guard !closed else {
+            return
+        }
+        closed = true
         writer.close()
+    }
+    
+    deinit {
+        close()
     }
 }

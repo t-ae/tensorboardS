@@ -4,6 +4,8 @@ class EventsWriter {
     let writer: RecordWriter
     let lock = NSLock()
     
+    private var closed = false
+    
     init(logdir: URL, filenamePrefix: String, filenameSuffix: String = "") throws {
         let unixtime = Date().timeIntervalSince1970
         
@@ -43,8 +45,6 @@ class EventsWriter {
     }
     
     func close() {
-        flush()
-        
         lock.lock()
         defer { lock.unlock() }
         

@@ -3,7 +3,7 @@ import TensorFlow
 import TensorBoardS
 
 let logdir = URL(fileURLWithPath: "./logdir")
-let writer = try SummaryWriter(logdir: logdir)
+let writer = try SummaryWriter(logdir: logdir, flushInterval: 5)
 
 // MARK: - Add text
 do {
@@ -63,6 +63,15 @@ do {
 //    let values = Tensor<Float>(randomNormal: [1000]) + 2
 //    writer.addHistogram(tag: "histo", values: values)
 //}
+
+// MARK: - Real time plot
+do {
+    for i in 0..<10 {
+        sleep(1)
+        print("realtime: \(i)")
+        writer.addScalar(tag: "realtime", scalar: i)
+    }
+}
 
 writer.flush()
 writer.close()

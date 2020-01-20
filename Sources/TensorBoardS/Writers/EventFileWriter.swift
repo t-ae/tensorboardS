@@ -8,6 +8,8 @@ class EventFileWriter {
     var eventQueue: [TensorBoardS_Event] = []
     var flushTimer: Timer?
     
+    private var closed = false
+    
     private let lock = NSLock()
     
     init(
@@ -22,6 +24,7 @@ class EventFileWriter {
         writerQueue = DispatchQueue(label: "EventFileWriter")
         
         flushTimer = Timer.scheduledTimer(withTimeInterval: flushInterval, repeats: true) { _ in
+            print("timer flush")
             self.flush()
         }
     }
@@ -45,6 +48,10 @@ class EventFileWriter {
     }
     
     func close() {
+        guard !closed else {
+            return
+        }
+        closed = true
         flushTimer?.invalidate()
         flush()
         writer.close()

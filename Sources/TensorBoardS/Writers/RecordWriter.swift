@@ -5,12 +5,16 @@ class RecordWriter {
     let fileURL: URL
     let fileHandle: FileHandle
     
+    private var closed = false
+    
     init(fileURL: URL) throws {
         self.fileURL = fileURL
         
         let parent = fileURL.deletingLastPathComponent()
         let fm = FileManager.default
-        try? fm.createDirectory(at: parent, withIntermediateDirectories: true, attributes: nil)
+        if !fm.fileExists(atPath: parent.path) {
+            try fm.createDirectory(at: parent, withIntermediateDirectories: true, attributes: nil)
+        }
         if !fm.fileExists(atPath: fileURL.path) {
             fm.createFile(atPath: fileURL.path, contents: nil, attributes: nil)
         }
@@ -31,6 +35,10 @@ class RecordWriter {
     }
     
     func close() {
+        guard !closed else {
+            return
+        }
+        closed = true
         flush()
         fileHandle.closeFile()
     }
