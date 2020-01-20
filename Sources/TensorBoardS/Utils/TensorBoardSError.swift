@@ -1,6 +1,6 @@
 import Foundation
 
-public struct GenericError: Error {
+public struct TensorBoardSError: Error {
     public let message: String
     
     init(_ message: String) {

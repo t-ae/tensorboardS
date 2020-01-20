@@ -57,6 +57,11 @@ do {
     writer.addImages(tag: "gray_grid4", images: gray, colSize: 4)
     writer.addImages(tag: "gray_grid5", images: gray, colSize: 5)
 }
+do { // Invalid image
+    let invalid = Tensor<Float>(zeros: [10, 8, 8, 1, 1])
+    writer.addImage(tag: "invalid", image: invalid)
+    writer.addImages(tag: "invalid", images: invalid, colSize: 3)
+}
 
 // MARK: - Add histogram
 //do {

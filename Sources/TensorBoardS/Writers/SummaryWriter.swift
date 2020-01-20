@@ -67,7 +67,7 @@ class ThrowingSummaryWriter {
         step: Int = 0,
         date: Date = Date()
     ) throws {
-        let image = makeGridImage(images: images, colSize: colSize, paddingValue: 0)
+        let image = try makeGridImage(images: images, colSize: colSize, paddingValue: 0)
         try addImage(tag: tag, image: image, step: step, date: date)
     }
     
@@ -78,7 +78,7 @@ class ThrowingSummaryWriter {
         step: Int = 0,
         date: Date = Date()
     ) throws {
-        let image = makeGridImage(images: images, colSize: colSize, paddingValue: 0)
+        let image = try makeGridImage(images: images, colSize: colSize, paddingValue: 0)
         try addImage(tag: tag, image: image, step: step, date: date)
     }
     
@@ -112,7 +112,7 @@ class ThrowingSummaryWriter {
     ) throws {
         let jsonData = try encoder.encode(encodable)
         guard let encoded = String(data: jsonData, encoding: .utf8) else {
-            throw GenericError("Failed to encode jsonData to String: jsonData=\(jsonData)")
+            throw TensorBoardSError("Failed to encode jsonData to String: jsonData=\(jsonData)")
         }
         let text = """
         <pre>

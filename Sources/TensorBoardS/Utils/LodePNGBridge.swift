@@ -18,7 +18,7 @@ struct PNGData {
         ///   5 - DIGITAL_YUV
         ///   6 - BGRA
         
-        static func `default`(for channels: Int) -> ColorSpace {
+        static func `default`(for channels: Int) throws -> ColorSpace {
             switch channels {
             case 1:
                 return .grayscale
@@ -29,7 +29,7 @@ struct PNGData {
             case 4:
                 return .rgba
             default:
-                fatalError("Invalid channel num: \(channels)")
+                throw TensorBoardSError("Invalid channel num: \(channels)")
             }
         }
         
@@ -62,11 +62,13 @@ struct PNGData {
     }
     
     init(from tensor: Tensor<UInt8>) throws {
-        precondition(tensor.rank == 2 || tensor.rank == 3)
+        guard tensor.rank == 2 || tensor.rank == 3 else {
+            throw TensorBoardSError("Image tensor must have rank 2 or 3: rank=\(tensor.rank)")
+        }
         let width = tensor.shape[1]
         let height = tensor.shape[0]
         let channels = tensor.rank == 3 ? tensor.shape[2] : 1
-        let colorspace = ColorSpace.default(for: channels)
+        let colorspace = try ColorSpace.default(for: channels)
         
         var png: UnsafeMutablePointer<UInt8>? = nil
         var pngSize: Int = 0

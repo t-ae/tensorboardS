@@ -1,7 +1,11 @@
 import Foundation
 import TensorFlow
 
-func makeGridImage<Scalar>(images: Tensor<Scalar>, colSize: Int, paddingValue: Scalar) -> Tensor<Scalar> {
+func makeGridImage<Scalar>(
+    images: Tensor<Scalar>,
+    colSize: Int,
+    paddingValue: Scalar
+) throws -> Tensor<Scalar> {
     
     let originalRank = images.rank
     var images = images
@@ -11,7 +15,7 @@ func makeGridImage<Scalar>(images: Tensor<Scalar>, colSize: Int, paddingValue: S
     case 4:
         break
     default:
-        fatalError("Invalid images shape: \(images.shape)")
+        throw TensorBoardSError("Batch image tensor must have rank 3 or 4: rank=\(images.rank)")
     }
     
     let rowSize = Int(ceil(Float(images.shape[0]) / Float(colSize)))
